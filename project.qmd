@@ -1,13 +1,13 @@
 ---
 title: "Tidy Tuesday"
-output:
-  html_document:
-    df_print: paged
+format:
+  html:
+    df-print: paged
 ---
 
-```{r setup, include=FALSE}
-# knit options
-knitr::opts_chunk$set(echo = TRUE)
+```{r}
+#| label: setup
+#| include: false
 options(styler.save_after_styling = TRUE)
 library(tidyverse)
 ```
@@ -36,8 +36,8 @@ country_totals <- read_csv("https://raw.githubusercontent.com/rfordatascience/ti
 It turns out that `energy_types` has a few quirks. First, `level` can be "Level 1" or "Level 2", but the second level is always a subset of the first and only for one type. So, it's not very interesting. Also, the UK is missing `country_name` (but not `country` code, which is how I can tell). It's important to check your data for these types of things, but in this case, it's not very interesting, so let's address those now:
 
 ```{r}
-energy_types <- energy_types %>%
-  filter(level == "Level 1") %>% 
+energy_types <- energy_types |>
+  filter(level == "Level 1") |> 
   mutate(country_name = ifelse(is.na(country_name), "UK", country_name))
 ```
 
@@ -57,7 +57,7 @@ We will create a slope chart, which we can do in ggplot by combining point and l
 
 Using `energy_types_longer`:
 1. Create a ggplot with `year` on the x-axis, `gigawatts` on the y axis, and `group` set to `country.`
-2. Add lines. Set the color to "steelblue" and the size to 0.8.
+2. Add lines. Set the `color` to "steelblue" and the `linewidth` to 0.8.
 3. Add points. We'll use a hollow shape so we can change the border color of the points. Set the shape to 21, the fill to "steelblue", color to "white", and size to 2.
 4. Facet the plot by `type`. Allow the y axis to be free.
 5. Let's clean up the labels. Using `scale_y_continuous()`, set the labels to `scales::comma`. What's different?
@@ -68,9 +68,16 @@ library(cowplot)
 
 ```
 
+Your plot should look something like this:
+
+```{r}
+knitr::include_graphics("https://i.imgur.com/1RRqJU0.jpg")
+```
+
+
 There's a lot of information in this plot we could explore. Let's start with wind production. Which countries are producing the most wind energy in 2018?
 
-1. Create a new dataset, `wind_2018`, that only contains data for 2018 about Wind production. Arrange the dataset by `gigawatts`, then mutate `country_name` with `fct_inorder(country_name)`. This function will lock the order of `country_name` to the way they first appear in the data set. In other words, `country_name` is now a factor sorted by `gigawatts`.
+1. Create a new dataset, `wind_2018`, that only contains data for 2018 about Wind production. Arrange the dataset by `gigawatts`, then mutate `country_name = fct_inorder(country_name)`. This function will lock the order of `country_name` to the way they first appear in the data set. In other words, `country_name` is now a factor sorted by `gigawatts`.
 2. With `wind_2018`, create a bar plot using `geom_col()` with `gigawatts` on the x-axis and `country_name` on the y axis.
 3. In `geom_col()`, set the fill to "steelblue" and the alpha to 0.9. That will help us see the gridlines behind the bars.
 4. Set the x-axis to use commas in their labels, as we did above for the y axis.
@@ -80,20 +87,27 @@ There's a lot of information in this plot we could explore. Let's start with win
 ```{r}
 
 ```
+
+Your plot should look something like this:
+
+```{r}
+knitr::include_graphics("https://i.imgur.com/eShlIRa.jpg")
+```
+
 Germany was far and away the most significant producer of wind energy in 2018. Let's highlight that bar using aesthetics and the ggtext package. ggtext is a ggplot2 extension that allows us to modify the text on our plot in several ways.
 
 1. Create a new variable, `germany`, that is `TRUE` if the country name is Germany and `FALSE` otherwise.
 2. Set the column geom's aesthetic to map `germany` to fill.
-3. In the theme, set `axis.text.y` to `element_markdown()`. This function comes from ggtext and activates the ability to use markdown and HTML in our plot.
+3. In `theme()`, set `axis.text.y = element_markdown()`. This function comes from ggtext and activates the ability to use markdown and HTML in our plot.
 
 ```{r}
 library(ggtext)
 
-wind_2018 %>% 
+wind_2018 |> 
   mutate(
     __________,
     country_name = fct_recode(country_name, "<span style='color:firebrick'>Germany</i>" = "Germany")
-  ) %>% 
+  ) |> 
   ggplot(aes(x = gigawatts, y = country_name)) +
   geom_col(________, alpha = .9, show.legend = FALSE) +
   scale_fill_manual(values = c("steelblue", "firebrick")) + 
@@ -101,6 +115,12 @@ wind_2018 %>%
   ylab(NULL) +
   theme_minimal_vgrid() +
   theme(__________)
+```
+
+Your plot should look something like this:
+
+```{r}
+knitr::include_graphics("https://i.imgur.com/hENxTXG.jpg")
 ```
 
 Let's switch gears and go back to the original dataset. I want to know how conventional thermal energy production changed from 2016 to 2018. Luckily, our non-tidy dataset is pretty useful for calculating that value!
@@ -123,6 +143,11 @@ Using `energy_types`:
 
 ```
 
+Your plot should look something like this:
+
+```{r}
+knitr::include_graphics("https://i.imgur.com/DTejotD.jpg")
+```
 
 ## Part 2: Analyze a Tidy Tuesday dataset 
 
